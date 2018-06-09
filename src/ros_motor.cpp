@@ -1,6 +1,8 @@
 #include <ros/ros.h>
 #include <iostream>
 #include <fcntl.h>
+#include <sys/stat.h>
+#include <sys/types.h>
 //#include "trekking_node/serial.h"
 
 #define INIT_VMAX 255
@@ -41,7 +43,7 @@ class Motor
 }
 
 Motor::Motor() : nh_(){
-
+	motors_sub = nh_.subscribe("motor", 1, &Motor::motors_callback);
 
 }
 
@@ -75,9 +77,7 @@ void Motor::motors_callback(){
 
 }
 
-void Motor::spin()
-{
-	motors_sub = nh_.subscribe("motor", 1, &Motor::motors_callback);
+void Motor::spin(){
 
 	uint8_t max_speed_par;
 	nh_.param("max_speed", max_speed_par);
@@ -85,7 +85,9 @@ void Motor::spin()
 	while(ros::ok()){
 		ros::spinOnce();
 		
-
+		if(nh_.getParam("max_speed", max_speed_par) && max_speed_par != max_speed){
+			set_max_speed(max_speed_par);
+		}
 
 		if(use_serial){
 			drive_serial();
