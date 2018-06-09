@@ -1,5 +1,6 @@
 #include <ros/ros.h>
 #include <iostream>
+#include <fcntl.h>
 //#include "trekking_node/serial.h"
 
 #define INIT_VMAX 255
@@ -24,7 +25,9 @@ class Motor
 		ros::Subscriber sub;
 	
 		void init_serial();
-		void drive_motors_serial();
+		void drive_serial();
+
+		void motors_callback();
 	
 		int max_speed = INIT_VMAX;
 		int servo = 0, speed = 0, cur_speed = 80;
@@ -44,8 +47,7 @@ Motor::Motor() : nh_(){
 
 void Motor::init_serial(){
 	fd = serial_open("/dev/arduino", &baudrate, O_WRONLY);
-	while (fd == -1)
-	{
+	while (fd == -1){
 		fd = serial_open("/dev/arduino", &baudrate, O_WRONLY);
 		ros::Duration(0.01).sleep();
 	}
@@ -61,13 +63,11 @@ void Motor::drive_serial(){
     }
 }
 
-void Motor::set_max_speed(int new_max_speed)
-{
+void Motor::set_max_speed(int new_max_speed){
 	max_speed = new_max_speed > 255 ? 255 : new_max_speed;
 }
 
-void Motor::reset_max_speed()
-{
+void Motor::reset_max_speed(){
 	max_speed = INIT_VMAX;
 }
 
@@ -77,11 +77,16 @@ void Motor::motors_callback(){
 
 void Motor::spin()
 {
-	motors_sub = n.subscribe("motor", 1, &Motor::motors_callback);
+	motors_sub = nh_.subscribe("motor", 1, &Motor::motors_callback);
+
+	uint8_t max_speed_par;
+	nh_.param("max_speed", max_speed_par);
 	
 	while(ros::ok()){
 		ros::spinOnce();
 		
+
+
 		if(use_serial){
 			drive_serial();
 		}
@@ -92,7 +97,7 @@ int main(int argc, char** argv)
 {
   ros::init(argc, argv, "motors_subscriber");
   
-  Motors motor;
+  Motor motor;
   motor.spin();
   
   return 0;
