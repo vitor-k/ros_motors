@@ -27,11 +27,14 @@
 #include <fcntl.h>
 #include <sys/stat.h>
 #include <sys/types.h>
+#include <thunder_trekking/Motor.h>
 //#include "trekking_node/serial.h"
 
 #define INIT_VMAX 255
 
 #define abs(x) ((x) > 0 ? (x) : -(x))
+
+
 
 //static int max_speed = INIT_VMAX;
 //static int servo = 0, speed = 0, cur_speed = 80;
@@ -44,6 +47,7 @@ class Motor
 	public:
 		Motor();
 		void spin();
+		void motors_callback(const thunder_trekking::Motor::ConstPtr& motor_msg);
 	
 	private:
 		ros::NodeHandle nh_;
@@ -52,8 +56,8 @@ class Motor
 	
 		void init_serial();
 		void drive_serial();
-
-		void motors_callback();
+		int servo;
+		int speed;
 	
 		int max_speed = INIT_VMAX;
 		int servo = 0, speed = 0, cur_speed = 80;
@@ -97,14 +101,20 @@ void Motor::reset_max_speed(){
 	max_speed = INIT_VMAX;
 }
 
-void Motor::motors_callback(){
-
+void Motor::motors_callback(const thunder_trekking::Motor::ConstPtr& motor_msg){
+	if (motor_msg -> header.stamp == ros::Time(0))
+    {
+        ROS_INFO("Invalid motor message.");
+        return;
+    }
+	servo = motor_msg -> servo;
+	speed = motor_msg -> motor;
 }
 
 void Motor::spin(){
 
 	uint8_t max_speed_par;
-	nh_.param("max_speed", max_speed_par);
+	nh_.param("max_speed", max_speed_par, INIT_VMAX);
 	
 	while(ros::ok()){
 		ros::spinOnce();
