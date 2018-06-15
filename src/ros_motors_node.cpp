@@ -132,7 +132,7 @@ void Motor::stop(int servo_offset, int vel)
 	cur_speed = vel;
 	while (cur_speed != 0)
 	{
-		drive(servo_offset, cur_speed--);
+		drive_serial(servo_offset, cur_speed--);
 		ros::Duration(0.01).sleep();
 	}
 }
