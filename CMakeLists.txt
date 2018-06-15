@@ -153,7 +153,7 @@ add_dependencies(motor_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTE
 
 ## Specify libraries to link a library or executable target against
 target_link_libraries(motor_node
-  ${catkin_LIBRARIES}
+#  ${catkin_LIBRARIES}
   thunder_trekking
 )
 

@@ -27,20 +27,14 @@
 #include <fcntl.h>
 #include <sys/stat.h>
 #include <sys/types.h>
-#include <thunder_trekking/Motor.h>
-//#include "trekking_node/serial.h"
+//#include <thunder_trekking/Motor.h>
+#include "trekking_node/serial.h"
 
 #define INIT_VMAX 255
 
 #define abs(x) ((x) > 0 ? (x) : -(x))
 
 
-
-//static int max_speed = INIT_VMAX;
-//static int servo = 0, speed = 0, cur_speed = 80;
-
-//static const int baudrate = 9600;
-//static const uint32_t sleep_time = 10;
 
 class Motor
 {
@@ -52,12 +46,11 @@ class Motor
 	private:
 		ros::NodeHandle nh_;
 
-		ros::Subscriber sub;
+		ros::Subscriber motors_sub;
 	
 		void init_serial();
 		void drive_serial();
-		int servo;
-		int speed;
+		void drive_serial(int servo, int speed);
 	
 		int max_speed = INIT_VMAX;
 		int servo = 0, speed = 0, cur_speed = 80;
@@ -68,6 +61,7 @@ class Motor
 		
 		void set_max_speed(int new_max_speed);
 		void reset_max_speed();
+		void stop(int servo_offset, int vel);
 }
 
 Motor::Motor() : nh_(){
@@ -83,7 +77,7 @@ void Motor::init_serial(){
 	}
 }
 
-void Motor::drive_serial(){
+void Motor::drive_serial(int servo, int speed){
 	init_serial();
 	uint8_t message[6] = { 255, servo < 0, abs(servo), speed < 0, abs(speed), 254 };
 	if (write(fd, message, sizeof(message)) == -1){
@@ -91,6 +85,10 @@ void Motor::drive_serial(){
 		close(fd);
 		init_serial();
     }
+	cur_speed = speed;
+}
+void Motor::drive_serial(){
+	drive_serial(servo, speed);
 }
 
 void Motor::set_max_speed(int new_max_speed){
@@ -126,6 +124,16 @@ void Motor::spin(){
 		if(use_serial){
 			drive_serial();
 		}
+	}
+}
+
+void Motor::stop(int servo_offset, int vel)
+{
+	cur_speed = vel;
+	while (cur_speed != 0)
+	{
+		drive(servo_offset, cur_speed--);
+		ros::Duration(0.01).sleep();
 	}
 }
 
