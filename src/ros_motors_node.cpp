@@ -68,7 +68,7 @@
  * Tem valores consecutivos (http://www.delorie.com/djgpp/doc/incs/termios.h). Uma busca binária em uma array com os
  * valores retorna o valor certo da constante.
  */
-namespace serial{
+namespace Serial{
 	static const unsigned int baud_list[] =
 	{ 0,    50,   75,   110,  134,   150,   200,   300,    600,   1200,
 	  1800, 2400, 4800, 9600, 19200, 38400, 57600, 115200, 230400
@@ -176,9 +176,9 @@ Motor::Motor() : nh_(){
 }
 
 void Motor::init_serial(){
-	fd = serial_open("/dev/arduino", &baudrate, O_WRONLY);
+	fd = Serial::serial_open("/dev/arduino", &baudrate, O_WRONLY);
 	while (fd == -1){
-		fd = serial_open("/dev/arduino", &baudrate, O_WRONLY);
+		fd = Serial::serial_open("/dev/arduino", &baudrate, O_WRONLY);
 		ros::Duration(0.01).sleep();
 	}
 }
